@@ -2,6 +2,7 @@ import React, {useState, useEffect, useRef} from 'react'
 import Board from './Board';
 import { calculateWinner, getCurrentBoardStateString, getPositionString, getIforBoard } from '../helpers/helper';
 import axios from 'axios';
+import Victory from './victory';
 
 const styles = {
   width: '300px',
@@ -16,18 +17,20 @@ function Game() {
   const [compMove, setCompMove] = useState(false);
 
   const callApi = async (data) => {
-    // console.log('data: ', data);
-    var config = {
-      method: 'post',
-      url: 'http://127.0.0.1:5000/api/move',
-      headers: { 
-        'Content-Type': 'application/json'
-      },
-      data : data
-    };
-    const response = await axios(config);
-    // console.log('response: ', response, typeof response.data);
-    return response;
+    try {
+      var config = {
+        method: 'post',
+        url: 'http://127.0.0.1:5000/api/move',
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        data : data
+      };
+      const response = await axios(config);
+      return response;
+    } catch(ex){
+      throw ex;
+    }
   }
 
   const handleClick = (i) => {
@@ -42,34 +45,26 @@ function Game() {
 
   
 
-  useEffect(() => {
+  // useEffect(() => {
     
-    async function callApiHelper(isCompMove = false) {
-      const boardState = getCurrentBoardStateString(board);
-      const freePositions = getPositionString(board);
-      // console.log('boardState: ', boardState);
-      // console.log('freePositions: ', freePositions);
-      // console.log('board: ', board);
-      let cbs = getCbs(boardState);
-      // console.log('cbs: ', cbs);
-      let curPlayer = isXNext ? 1 : -1;
-      var data = JSON.stringify({
-        position: freePositions,
-        current_board_state: cbs,
-        symbol: curPlayer
-      });
-      return await callApi(data);
-    }
+  //   async function callApiHelper(isCompMove = false) {
+  //     const boardState = getCurrentBoardStateString(board);
+  //     const freePositions = getPositionString(board);
+  //     let cbs = getCbs(boardState);
+  //     let curPlayer = isXNext ? 1 : -1;
+  //     var data = JSON.stringify({
+  //       position: freePositions,
+  //       current_board_state: cbs,
+  //       symbol: curPlayer
+  //     });
+  //     return await callApi(data);
+  //   }
     
-    // if(isFirstRender){
-    //   return;
-    // }
+  //   if(board) {
+  //     callApiHelper(compMove);
+  //   }
 
-    if(board) {
-      callApiHelper(compMove);
-    }
-
-  }, [board, compMove, isXNext]);
+  // }, [board, compMove, isXNext]);
 
 
   
@@ -81,36 +76,40 @@ function Game() {
       let c = JSON.stringify(test[iter]);
       cbs = cbs + c + ",";
     }
-    // cbs.slice(0, -1);
-    // cbs.slice(0, -1);
-    // console.log('cbs: ', cbs);
     cbs = cbs + "]"
     return cbs;
   }
 
   const setSymbol = (data) => {
-    console.log('data: setSymbol', data);
     let i = getIforBoard(data);
     handleClick(i);
   }
 
   const randomizeMove = async () => {
-    const boardState = getCurrentBoardStateString(board);
-    const freePositions = getPositionString(board);
-    let cbs = getCbs(boardState);
-    // console.log('cbs: ', cbs);
-    let curPlayer = isXNext ? 1 : -1;
-    var data = JSON.stringify({
-      position: freePositions,
-      current_board_state: cbs,
-      symbol: curPlayer
-    });
-    let response = await callApi(data);
-    let compMove = response.data;
-    // call setSymbol function here
-    setSymbol(compMove);
-    // return await callApi(data);
+    try {
+      const boardState = getCurrentBoardStateString(board);
+      const freePositions = getPositionString(board);
+      console.log('freePositions: ', freePositions);
+      let cbs = getCbs(boardState);
+      if(freePositions === "[]"){
+        return;
+      }
+      let curPlayer = isXNext ? 1 : -1;
+      var data = JSON.stringify({
+        position: freePositions,
+        current_board_state: cbs,
+        symbol: curPlayer
+      });
+      let response = await callApi(data);
+      let compMove = response.data;
+      setSymbol(compMove);
+    } catch(e){
+      console.log("exception", e);
+      
+    }
   }
+
+
 
   const freshGame = () => {
     setBoard(Array(9).fill(null));
@@ -119,16 +118,23 @@ function Game() {
 
   const renderMoves = () => (
     <>
-    <button style={{ marginLeft: '100px', paddingLeft: '10px' }} onClick={() => freshGame()}>
+    <button style={{ verticalAlign: "center", padding: '10px', margin:"auto", marginBottom: "10px"}} onClick={() => freshGame()}>
       {winner ? "Restart Game" : "Start Game"}
     </button>
-    <button style={{ marginLeft: '100px', paddingLeft: '10px' }} onClick={randomizeMove}>
+    <button style={{ verticalAlign: "center", padding: '10px', marginBottom: "10px" }} onClick={randomizeMove}>
       {"Random move"}
     </button>
     </>
   )
 
-  return (
+  const victoryScreen = () => (
+    <>
+      <Victory winner={winner} onClick={freshGame}/>
+      <Board squares={board} onClick={handleClick} /> 
+    </>
+  )
+
+  const renderGame = () => (
     <>
       <Board squares={board} onClick={handleClick} /> 
       <div style={styles}>
@@ -137,6 +143,15 @@ function Game() {
           {renderMoves()}
         </p>
       </div>
+    </>
+  )
+
+
+  return (
+    <>
+      {
+        winner ? victoryScreen() : renderGame()
+      }
     </>
   )
 }
