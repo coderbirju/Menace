@@ -1,51 +1,104 @@
+/* align  to center */
+
 body {
-    font: 14px "Century Gothic", Futura, sans-serif;
-    margin: 20px;
+  font: 14px 'Century Gothic', Futura, sans-serif;
+  height: 100vh;
+}
+
+ol,
+ul {
+  padding-left: 30px;
+}
+
+.board-row:after {
+  clear: both;
+  content: '';
+  display: table;
+}
+
+.status {
+  margin-bottom: 10px;
+}
+
+.square {
+  background: #fff;
+  border: 1px solid #999;
+  float: left;
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 34px;
+  height: 34px;
+  margin-right: -1px;
+  margin-top: -1px;
+  padding: 0;
+  text-align: center;
+  width: 34px;
+}
+
+.square:focus {
+  outline: none;
+}
+
+.kbd-navigation .square:focus {
+  background: #ddd;
+}
+
+.game {
+  display: flex;
+  flex-direction: row;
+}
+
+.game-info {
+  margin-left: 20px;
+}
+
+.death-background {
+  background: black;
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  text-align: center;
+  opacity: 1;
+  animation: fade-in 10s linear;
+}
+
+.death-background * {
+  color: #f00;
+  font-family: OptimusPrinceps, sans-serif;
+  letter-spacing: 5px;
+  font-size: 8em;
+  font-weight: 400;
+  animation: fade-in 10s linear, text-zoom 5s linear;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
   }
-  
-  ol, ul {
-    padding-left: 30px;
+  25% {
+    opacity: 1;
   }
-  
-  .board-row:after {
-    clear: both;
-    content: "";
-    display: table;
+  100% {
+    opacity: 1;
   }
-  
-  .status {
-    margin-bottom: 10px;
+}
+
+@keyframes text-zoom {
+  0% {
+    font-size: 5em;
   }
-  
-  .square {
-    background: #fff;
-    border: 1px solid #999;
-    float: left;
-    font-size: 24px;
-    font-weight: bold;
-    line-height: 34px;
-    height: 34px;
-    margin-right: -1px;
-    margin-top: -1px;
-    padding: 0;
-    text-align: center;
-    width: 34px;
+  25% {
+    font-size: 6em;
   }
-  
-  .square:focus {
-    outline: none;
+  50% {
+    font-size: 7em;
   }
-  
-  .kbd-navigation .square:focus {
-    background: #ddd;
+  75% {
+    font-size: 8em;
   }
-  
-  .game {
-    display: flex;
-    flex-direction: row;
+  100% {
+    font-size: 8em;
   }
-  
-  .game-info {
-    margin-left: 20px;
-  }
-  
+}
