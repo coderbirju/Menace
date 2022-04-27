@@ -18,6 +18,27 @@ export function calculateWinner(squares) {
     return null;
 }
 
+export function isGameOver(board, winner){
+    let gameOver = false;
+    const lines = [
+        [0,1,2],
+        [3,4,5],
+        [6,7,8]
+    ];
+
+    if (winner != null){
+        return true;
+    }
+    
+    for(let i = 0; i<lines.length; i++){
+        const [a,b,c] = lines[i];
+        if(board[a] === null || board[b] === null || board[c] === null) {
+            return gameOver;
+        } 
+    }
+    return true;
+}
+
 export function getPositionString(board) {
     let freePositions = "[";
     const lines = [
