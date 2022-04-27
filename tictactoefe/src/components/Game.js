@@ -5,10 +5,11 @@ import {
   getCurrentBoardStateString,
   getPositionString,
   getIforBoard,
+  isGameOver
 } from '../helpers/helper';
 import axios from 'axios';
 import './../index.css';
-import { getDefaultNormalizer } from '@testing-library/react';
+
 
 const styles = {
   width: '300px',
@@ -28,8 +29,11 @@ function Game() {
   const winner = calculateWinner(board);
   // const isFirstRender = useRef(true);
   const [compMove, setCompMove] = useState(false);
-  const [isGameOver, setIsGameOver] = useState(false);
+  const gameOver = isGameOver(board, winner);
+  console.log('winner: ', winner);
+  console.log('isGameOver: ', gameOver);
 
+  // api to call the python api to get the next move
   const callApi = async (data) => {
     // console.log('data: ', data);
     var config = {
@@ -45,6 +49,7 @@ function Game() {
     return response;
   };
 
+  // handle human click on the board
   const handleClick = (i) => {
     // console.log('i: ', i);
     const tempBoard = [...board];
@@ -55,15 +60,12 @@ function Game() {
     setIsXNext(!isXNext);
   };
 
+  // update the states based on changes to the boardState and other state variable
   useEffect(() => {
     async function callApiHelper(isCompMove = false) {
       const boardState = getCurrentBoardStateString(board);
       const freePositions = getPositionString(board);
-      // console.log('boardState: ', boardState);
-      // console.log('freePositions: ', freePositions);
-      // console.log('board: ', board);
       let cbs = getCbs(boardState);
-      // console.log('cbs: ', cbs);
       let curPlayer = isXNext ? 1 : -1;
       var data = JSON.stringify({
         position: freePositions,
@@ -72,16 +74,12 @@ function Game() {
       });
       return await callApi(data);
     }
-
-    // if(isFirstRender){
-    //   return;
-    // }
-
     if (board) {
       callApiHelper(compMove);
     }
   }, [board, compMove, isXNext]);
 
+  //utility to build the board state
   const getCbs = (boardState) => {
     let cbs = '[';
     let test = boardState;
@@ -89,22 +87,21 @@ function Game() {
       let c = JSON.stringify(test[iter]);
       cbs = cbs + c + ',';
     }
-    // cbs.slice(0, -1);
-    // cbs.slice(0, -1);
-    // console.log('cbs: ', cbs);
     cbs = cbs + ']';
     return cbs;
   };
 
+  // function to mimic a board click
   const setSymbol = (data) => {
     console.log('data: setSymbol', data);
-    let i = getIforBoard(data);
-    handleClick(i);
+    let i = getIforBoard(data); // gets the corresponding array position value based on the response from the MENACE model
+    handleClick(i); // mimic the board click on the i'th position calculated above
   };
 
+  // call the python Api to get the move from menace
   const randomizeMove = async () => {
-    const boardState = getCurrentBoardStateString(board);
-    const freePositions = getPositionString(board);
+    const boardState = getCurrentBoardStateString(board); // current board state in the format that the api requires
+    const freePositions = getPositionString(board); // calculated free positions according to the required api request
     let cbs = getCbs(boardState);
     // console.log('cbs: ', cbs);
     let curPlayer = isXNext ? 1 : -1;
@@ -120,6 +117,7 @@ function Game() {
     // return await callApi(data);
   };
 
+  //reset the board
   const freshGame = () => {
     setBoard(Array(9).fill(null));
     setIsXNext(true);
@@ -132,7 +130,7 @@ function Game() {
           style={{ marginLeft: '100px', paddingLeft: '10px' }}
           onClick={() => freshGame()}
         >
-          {winner ? 'Restart Game' : 'Start Game'}
+          {winner || gameOver ? 'Restart Game' : 'Start Game'}
         </button>
         <button
           style={{ marginLeft: '100px', paddingLeft: '10px' }}
@@ -144,19 +142,29 @@ function Game() {
     </>
   );
 
+
+  // Game renders this
+
   return (
     <>
       <>{renderMoves()}</>
       <Board squares={board} onClick={handleClick} />
-      {winner ? (
-        <div class="death-background">
-          <p>{winner} Won</p>
-        </div>
-      ) : (
-        <div style={styles}>
-          <p>{'Next Move: ' + (isXNext ? 'X' : 'O')}</p>
-        </div>
-      )}
+      { winner && gameOver ? (
+          <div class="death-background">
+            <p>{winner} Won</p>
+          </div>
+        ) : (!winner && gameOver) ?
+        (
+          <div class="death-background">
+            <p>Game Over</p>
+          </div>
+        )
+        : (
+          <div style={styles}>
+            <p>{'Next Move: ' + (isXNext ? 'X' : 'O')}</p>
+          </div>
+        )
+      }
     </>
   );
 }
