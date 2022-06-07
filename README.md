@@ -1,4 +1,4 @@
-# TicTacToe
+# Matchbox Educable Noughts and Crosses Engine
 PSA final project MENACE
 
 ## Team Members
